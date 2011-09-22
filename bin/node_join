@@ -1,0 +1,79 @@
+#!/usr/bin/env node
+
+/*
+ *
+ */
+
+var fs = require('fs'),
+    util = require('util'),
+    path = require('path'),
+    dir = process.cwd(),
+    sourceFilePath = path.resolve(dir, process.argv[2]),
+    fileSource = fs.readFileSync(sourceFilePath, 'utf8');
+    
+
+function indexOfSync(arr, regex, i) {
+    var i = i || 0,
+        l = arr.length;
+        
+    for(; i < l; i++) {
+        if (arr[i].match(regex)) break;
+    }
+    
+    if (i >= l) i = -1;
+    
+    return i;
+}
+
+function findJoinBlock (source) {
+    var startIndex, stopIndex, i = 0, 
+        arr = source.slice(0),
+        l = arr.length,
+        blocks = [],
+        name, startItem;
+        
+    i = indexOfSync(arr, /<!--\s{1,}join\s{1,}.*-->/, i);    
+    while (i != -1) {
+        startIndex = i
+        i = indexOfSync(arr, /<!--\s{1,}\/join\s{1,}-->/, i);
+        if (i > 0) {
+            stopIndex = i;
+        } else {
+            exit(1, 'No join close');
+            break;
+        }
+        
+        
+        name = 
+        startItem = arr[startIndex];
+        
+        blocks.push({start: startIndex, stop: stopIndex});
+        
+        i = indexOfSync(arr, /<!--\s{1,}join\s{1,}.*-->/, i);
+    };
+   
+    return blocks; 
+}
+
+function run () {
+    var splitSource;
+    
+    if (!fileSource) {
+        exit(1, 'Empty file');
+    } else {
+        splitSource = fileSource.split(/[\r\n]/g);
+        console.log(findJoinBlock(splitSource));
+    }
+    
+    exit();
+}
+
+function exit(code, msg) {
+    if (code) {
+        util.error((msg || 'Error'));
+    }
+    
+    process.exit(code);
+}
+
+run();
